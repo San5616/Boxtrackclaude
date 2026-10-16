@@ -928,7 +928,9 @@ async function loadUserHouseholds() {
     allHouseholds = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (allHouseholds.length === 0) {
       hideLoader();
-      showSection('welcome');
+      currentHouseholdId = null;
+      renderNoHouseholdState(); // Call the new empty state
+      showSection('dashboard'); // Go to dashboard instead of welcome
     } else {
       if (!currentHouseholdId || !allHouseholds.find(h => h.id === currentHouseholdId)) {
         currentHouseholdId = allHouseholds[0].id;
@@ -939,6 +941,23 @@ async function loadUserHouseholds() {
       hideLoader();
     }
   });
+}
+
+function renderNoHouseholdState() {
+  document.getElementById('hhSwitcher').innerHTML = '';
+  document.getElementById('inviteBannerWrap').innerHTML = '';
+  document.querySelector('.fab-wrap').style.display = 'none'; // Hide the + buttons
+  
+  document.getElementById('dashboardContent').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">🏠</div>
+      <div class="empty-title">Welcome to BoxTrack</div>
+      <div class="empty-sub">You don't belong to any households yet. Create a new one or join an existing one to get started.</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:24px;max-width:280px;margin-left:auto;margin-right:auto;">
+        <button class="btn btn-primary btn-full" onclick="openModal('addHouseholdModal')">Create Household</button>
+        <button class="btn btn-secondary btn-full" onclick="openModal('joinHHModal')">Join Household</button>
+      </div>
+    </div>`;
 }
 
 function renderHHSwitcher() {
@@ -1031,6 +1050,7 @@ window.copyInviteCode = function(code) {
 };
 
 function renderDashboard() {
+  document.querySelector('.fab-wrap').style.display = 'flex'; // Ensure + buttons are visible when a household exists
   const content = document.getElementById('dashboardContent');
   const boxes = allBoxes.filter(b => b.householdId === currentHouseholdId);
   const locations = allLocations.filter(l => l.householdId === currentHouseholdId);
